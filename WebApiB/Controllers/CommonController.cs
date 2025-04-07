@@ -18,6 +18,7 @@ public class CommonController : ControllerBase
     [HttpGet("ping")]
     public IActionResult Ping()
     {
+        System.Threading.Thread.Sleep(2000);
         return Ok("Hello from WebApiB!");
     }
 

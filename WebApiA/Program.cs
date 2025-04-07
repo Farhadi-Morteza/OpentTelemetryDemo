@@ -1,3 +1,7 @@
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace WebApiA
 {
@@ -6,6 +10,55 @@ namespace WebApiA
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var resourceBuilder = ResourceBuilder.CreateDefault().AddService(builder.Environment.ApplicationName);
+
+            builder.Services.AddOpenTelemetry()
+                .WithTracing(tracer =>
+                {
+                    tracer
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddConsoleExporter()
+                        .AddJaegerExporter(jaegerOptions =>
+                        {
+                            jaegerOptions.AgentHost = "localhost";
+                            jaegerOptions.AgentPort = 6831;
+                        });
+
+                    //tracer.AddOtlpExporter(opt =>
+                    // {
+                    //     opt.Endpoint = new Uri("http://localhost:18889");
+                    // });
+                })
+                .WithMetrics(metrics =>
+                {
+                    metrics
+                        .SetResourceBuilder(resourceBuilder)
+                        .AddAspNetCoreInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddPrometheusExporter();
+
+                    //metrics.AddOtlpExporter(opt =>
+                    //{
+                    //    opt.Endpoint = new Uri("http://localhost:18889");
+                    //});
+                });
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddOpenTelemetry(logging =>
+            {
+                logging.IncludeScopes = true;
+                logging.ParseStateValues = true;
+                logging.AddOtlpExporter();
+
+                logging.SetResourceBuilder(resourceBuilder)
+                       .AddConsoleExporter();
+            });
+
+            /////////////////////////////////////////////////////////////////////////// old
+            //.AddOtlpExporter());
 
             ////Open Telemetry
             //// Logging
@@ -52,6 +105,8 @@ namespace WebApiA
             });
 
             var app = builder.Build();
+
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

@@ -7,10 +7,13 @@ namespace WebApiA.Controllers;
 public class ProxyController : ControllerBase
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<ProxyController> _logger;
 
-    public ProxyController(IHttpClientFactory httpClientFactory)
+    public ProxyController(IHttpClientFactory httpClientFactory,
+        ILogger<ProxyController> logger)
     {
         _httpClient = httpClientFactory.CreateClient("WebApiB");
+        _logger = logger;
     }
 
     [HttpGet("call-WebApiB-GetCoffee")]
@@ -24,6 +27,7 @@ public class ProxyController : ControllerBase
     public async Task<IActionResult> CallPing()
     {
         var response = await _httpClient.GetStringAsync("/Common/ping");
+        _logger.LogInformation("WebApiB that call currectly!!!!!");
         return Ok($"WebApiA received from WebApiB: {response}");
     }
 }

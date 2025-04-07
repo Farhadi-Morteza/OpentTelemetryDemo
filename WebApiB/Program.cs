@@ -1,5 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Web.Api.Database;
 
 namespace WebApiB
@@ -9,6 +11,14 @@ namespace WebApiB
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddOpenTelemetry()
+            .WithTracing(tracer => tracer
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Environment.ApplicationName))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter());
+
 
             // Add services to the container.
 
