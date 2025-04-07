@@ -23,6 +23,30 @@ public class ProxyController : ControllerBase
         return Ok($"WebApiA received from WebApiB: {response}");
     }
 
+    [HttpPost("call-WebApiB-AddCoffee/{coffeeType:int}")]
+    public async Task<IActionResult> AddCoffee(int coffeeType)
+    {
+        try
+        {
+            // Using PostAsync instead of GetStringAsync since this is a [HttpPost] endpoint
+            var response = await _httpClient.PostAsync($"/Common/addcoffee/{coffeeType}", null);
+
+            // Ensure the request was successful
+            response.EnsureSuccessStatusCode();
+
+            // Read the response content
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            return Ok($"WebApiA called WebApiB to add new coffee. WebApiB response: {responseContent}");
+        }
+        catch (HttpRequestException ex)
+        {
+            // Log the error (you should inject ILogger in your controller)
+            return StatusCode(StatusCodes.Status502BadGateway,
+                $"Failed to call WebApiB: {ex.Message}");
+        }
+    }
+
     [HttpGet("call-WebApiB-ping")]
     public async Task<IActionResult> CallPing()
     {

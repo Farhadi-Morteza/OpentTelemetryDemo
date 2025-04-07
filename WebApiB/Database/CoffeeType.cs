@@ -1,6 +1,6 @@
 ﻿namespace Web.Api.Database;
 
-public enum CoffeeType
+public enum eCoffeeType
 {
     Decaf = 0,
     Espresso = 1,

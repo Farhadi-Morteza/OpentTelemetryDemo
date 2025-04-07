@@ -20,6 +20,11 @@ namespace WebApiA
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddConsoleExporter()
+                        .AddSqlClientInstrumentation(options =>
+                        {
+                            options.SetDbStatementForText = true;
+                            options.RecordException = true;
+                        })
                         .AddJaegerExporter(jaegerOptions =>
                         {
                             jaegerOptions.AgentHost = "localhost";

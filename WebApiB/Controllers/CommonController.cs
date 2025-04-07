@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Web.Api.Database;
+using WebApiB.Services;
 
 namespace WebApiB.Controllers;
 
@@ -8,11 +8,11 @@ namespace WebApiB.Controllers;
 [ApiController]
 public class CommonController : ControllerBase
 {
-    private readonly CoffeeShopDbContext _context;
+    private readonly ICoffeeService _coffeeService;
 
-    public CommonController(CoffeeShopDbContext context)
+    public CommonController(ICoffeeService coffeeService)
     {
-        _context = context;
+        _coffeeService = coffeeService;
     }
 
     [HttpGet("ping")]
@@ -25,16 +25,16 @@ public class CommonController : ControllerBase
     [HttpGet("getcoffee")]
     public async Task<IActionResult> GetCoffee()
     {
-        if (!_context.Sales.Any())
-        {
-            _context.Sales.Add(new Sale
-            {
-                CoffeeType = CoffeeType.Cappuccino
-            });
-            await _context.SaveChangesAsync();
-        }
+        System.Threading.Thread.Sleep(2000);
 
-        var sales = await _context.Sales.ToListAsync();
+        var sales = await _coffeeService.GetSalesAsync();
         return Ok(sales);
+    }
+
+    [HttpPost("addcoffee/{coffeeType:int}")]
+    public async Task<IActionResult> AddCoffeeAsync(int coffeeType)
+    {
+        int id = await _coffeeService.Add((eCoffeeType)coffeeType);
+        return Ok(id);
     }
 }
